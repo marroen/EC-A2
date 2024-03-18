@@ -5,9 +5,6 @@ import random
 def init(graph_str):
     print("init")
     graph = create_graph_from_str(graph_str)
-    print(graph)
-    for edge in graph.get_edges():
-        print(edge)
 
     fm(graph)
     return Graph()
@@ -25,17 +22,19 @@ def create_graph_from_str(graph_str):
     
     return graph
 
+# note: each vertex has 2 edges per edge; in & out
 def fm(graph):
     print("fm")
     # partition graph
     a = []
     b = []
-    shuffled_vertices = random.shuffle(graph.vertices())
+    shuffled_vertices = list(graph.vertices())
+    random.shuffle(shuffled_vertices)
     for i in range(0, len(shuffled_vertices)):
         if i % 2 == 0:
-            a.add(shuffled_vertices[i])
+            a.append(shuffled_vertices[i])
         else:
-            b.add(shuffled_vertices[i])
+            b.append(shuffled_vertices[i])
         i += 1
 
 
