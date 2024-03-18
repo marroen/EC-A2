@@ -6,6 +6,8 @@
 
 ##### DOCS END               #####
 
+
+
 ##### INSTALLING CONDA START #####
 
 Ensure you have (ana)conda:
@@ -41,6 +43,8 @@ Give conda permission to install packages:
 run `sudo chown -R $USER ~/.conda`
 
 ##### INSTALLING CONDA END #####
+
+
 
 ##### RUNNING CODE START   #####
 
