@@ -1,5 +1,6 @@
 from chromosome import Chromosome
 from graph_tool.all import *
+import random
 
 def init(graph_str):
     print("init")
@@ -7,6 +8,8 @@ def init(graph_str):
     print(graph)
     for edge in graph.get_edges():
         print(edge)
+
+    fm(graph)
     return Graph()
 
 # this is 0-based indexing, thus (textfile_index - 1)
@@ -25,6 +28,16 @@ def create_graph_from_str(graph_str):
 def fm(graph):
     print("fm")
     # partition graph
+    a = []
+    b = []
+    shuffled_vertices = random.shuffle(graph.vertices())
+    for i in range(0, len(shuffled_vertices)):
+        if i % 2 == 0:
+            a.add(shuffled_vertices[i])
+        else:
+            b.add(shuffled_vertices[i])
+        i += 1
+
 
 def multistart_ls():
     print("mls")
