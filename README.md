@@ -11,21 +11,17 @@ If you needed to install conda, also add to path:
 
 If you use zsh terminal, macOS:
 
-run `echo `export PATH="/usr/local/anaconda3/bin:$PATH"` >> ~/.zshrc`
+run ``echo `export PATH="/usr/local/anaconda3/bin:$PATH"` >> ~/.zshrc``
 
-run `echo &#96;export PATH="/usr/local/anaconda3/bin:$PATH"&#96; >> ~/.zshrc`
-
-run `echo `export PATH="/opt/homebrew/anaconda3/bin:$PATH"` >> ~/.zshrc`
-
-run `echo &#96;export PATH="/opt/homebrew/anaconda3/bin:$PATH"&#96; >> ~/.zshrc`
+run ``echo `export PATH="/opt/homebrew/anaconda3/bin:$PATH"` >> ~/.zshrc``
 
 run `source ~/.zshrc`
 
 If you use bash terminal, macOS:
 
-run `echo `export PATH="/usr/local/anaconda3/bin:$PATH"` >> ~/.bash_profile`
+run ``echo `export PATH="/usr/local/anaconda3/bin:$PATH"` >> ~/.bash_profile``
 
-run `echo `export PATH="/opt/homebrew/anaconda3/bin:$PATH"` >> ~/.bash_profile`
+run ``echo `export PATH="/opt/homebrew/anaconda3/bin:$PATH"` >> ~/.bash_profile``
 
 run `source ~/.bash_profile`
 
