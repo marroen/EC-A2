@@ -1,8 +1,9 @@
 from chromosome import Chromosome
 from graph_tool.all import *
 
-def init():
+def init(graph_str):
     print("init")
+    # create graph based on textfile
     return Graph()
 
 def fm(graph):
