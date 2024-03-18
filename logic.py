@@ -9,6 +9,7 @@ def init(graph_str):
         print(edge)
     return Graph()
 
+# this is 0-based indexing, thus (textfile_index - 1)
 def create_graph_from_str(graph_str):
     # create graph based on textfile
     splitted_lines = graph_str.split("\n")
