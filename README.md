@@ -1,4 +1,11 @@
 
+##### DOCS START             #####
+
+- bitarray: https://graph-tool.skewed.de/static/doc/quickstart.html#creating-graphs
+- graph-tool: https://graph-tool.skewed.de/static/doc/quickstart.html#creating-graphs
+
+##### DOCS END               #####
+
 ##### INSTALLING CONDA START #####
 
 Ensure you have (ana)conda:
@@ -35,6 +42,8 @@ run `sudo chown -R $USER ~/.conda`
 
 ##### INSTALLING CONDA END #####
 
+##### RUNNING CODE START   #####
+
 To create a virtual environment (and installing graph-tool):
 
 run `conda create --name gt -c conda-forge graph-tool`
@@ -55,4 +64,4 @@ And to leave the virtual environment (only when you finish your coding session):
 
 run `conda deactivate`
 
-use https://github.com/ilanschnell/bitarray for bitarray docs
+##### RUNNING CODE END     #####
