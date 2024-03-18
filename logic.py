@@ -18,11 +18,11 @@ def create_graph_from_str(graph_str):
         vertex_str = splitted_lines[i].split()
         n = int(vertex_str[2])
         for j in range(0, n):
-            graph.add_edge(i,int(vertex_str[3+j])-1)
+            if graph.edge(i, int(vertex_str[3+j])-1) is None:
+                graph.add_edge(i, int(vertex_str[3+j])-1)
     
     return graph
 
-# note: each vertex has 2 edges per edge; in & out
 def fm(graph):
     print("fm")
     # partition graph
