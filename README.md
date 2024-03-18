@@ -13,7 +13,11 @@ If you use zsh terminal, macOS:
 
 run `echo `export PATH="/usr/local/anaconda3/bin:$PATH"` >> ~/.zshrc`
 
+run `echo &#96;export PATH="/usr/local/anaconda3/bin:$PATH"&#96; >> ~/.zshrc`
+
 run `echo `export PATH="/opt/homebrew/anaconda3/bin:$PATH"` >> ~/.zshrc`
+
+run `echo &#96;export PATH="/opt/homebrew/anaconda3/bin:$PATH"&#96; >> ~/.zshrc`
 
 run `source ~/.zshrc`
 
