@@ -8,7 +8,7 @@ def init(graph_str):
 
     fm(graph)
 
-    draw_graph(graph)
+    #draw_graph(graph)
 
     return Graph()
 
@@ -35,16 +35,18 @@ def create_graph_from_str(graph_str):
 
 def fm(graph):
     print("fm")
-    # partition graph
+    # partition graph (not the arrays)
     a, b = partition(graph)
+    print(len(a))
+    print(len(b))
     
     # compute gains
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
-
+    
 
 def partition(graph):
-    a = []
-    b = []
+    a = set()
+    b = set()
     
     # assign property categories
     graph.vertex_properties["color"] = graph.new_vp("string")
@@ -57,10 +59,10 @@ def partition(graph):
     for i in range(0, len(shuffled_vertices)):
         curr_v = shuffled_vertices[i]
         if i % 2 == 0:
-            a.append(curr_v)
+            a.add(curr_v)
             vcolor[curr_v] = "#1c71d8"
         else:
-            b.append(curr_v)
+            b.add(curr_v)
             vcolor[curr_v] = "#2ec27e"
         i += 1
 
