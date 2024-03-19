@@ -64,6 +64,14 @@ Then, whenever you want to run the code:
 
 run `conda activate gt`
 
+If you are using PyCharm, add local environment path like this:
+
+M1-based macOS:
+/opt/homebrew/anaconda3/bin/anaconda
+
+Intel-based macOS:
+/usr/local/anaconda3/bin/conda
+
 And then simply:
 
 run `python3 main.py`
