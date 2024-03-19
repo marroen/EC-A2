@@ -8,11 +8,11 @@ def init(graph_str):
     print("init")
     graph = create_graph_from_str(graph_str)
 
-    main_list, list_0, list_1 = fm(graph)
+    main_list, list_0, list_1, pointer_0, pointer_1 = fm(graph)
 
-    multistart_ls(main_list, list_0, list_1)
-    iterated_ls(main_list, list_0, list_1)
-    genetic_ls(main_list, list_0, list_1)
+    multistart_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    iterated_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
 
     draw_graph(graph)
 
@@ -50,7 +50,7 @@ def fm(graph):
     print(len(a))
     print(len(b))
 
-    return setup_main_list(a, b, graph)
+    return setup_main_list(graph)
 
     # compute gains
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
@@ -81,19 +81,27 @@ def partition(graph):
     return (a, b)
 
 
-def multistart_ls(main_list, list_0, list_1):
+def multistart_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("mls")
 
 
-def iterated_ls(main_list, list_0, list_1):
+def iterated_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("ils")
 
 
-def genetic_ls(main_list, list_0, list_1):
+def genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("gls")
 
 
-def setup_main_list(a, b, graph):
+def setup_main_list(graph):
+    # Here I set up the entire main_list meaning I determine:
+    # vertex number
+    # partitioning (0 or 1)
+    # gain
+    # connected vertex
+    # predecessor
+    # successor
+
     main_list = []
     for i in range(0, 500):
         if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":  # ToDo: works?
@@ -106,6 +114,8 @@ def setup_main_list(a, b, graph):
 
     numbers = list(range(0, 500))
     random.shuffle(numbers)
+    pointer_0 = -100
+    pointer_1 = -100
 
     for j in range(0, 500):
         i = numbers[j]
@@ -126,6 +136,8 @@ def setup_main_list(a, b, graph):
                 main_list[i].predecessor = previous_number
                 main_list[i].gain = gain
                 list_0[gain] = i
+            if gain > pointer_0:
+                pointer_0 = gain
 
         else:
             if len(main_list[i].connected_vertexes) > 0:
@@ -143,12 +155,14 @@ def setup_main_list(a, b, graph):
                 main_list[i].predecessor = previous_number
                 main_list[i].gain = gain
                 list_1[gain] = i
+            if gain > pointer_0:
+                pointer_1 = gain
 
     # print(main_list)
     # print(list_0)
     # print(list_1)
 
-    return main_list, list_0, list_1
+    return main_list, list_0, list_1, pointer_0, pointer_1
 
 
 # Ignore, this is old stuff of yoav, but I want to keep it in for now
