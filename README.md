@@ -36,7 +36,11 @@ run `source ~/.bash_profile`
 
 Try to run `conda` after this to verify it works, otherwise:
 
+M1-based macOS:
 run `/opt/homebrew/anaconda3/bin/conda init zsh`
+
+Intel-based macOS:
+run `/usr/local/anaconda3/bin/conda init zsh`
 
 Give conda permission to install packages:
 
