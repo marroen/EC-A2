@@ -3,28 +3,24 @@ from graph_tool.all import *
 import random
 from Vertex import Vertex
 
-global main_list
-global list_0, list_1
-global pointer_0, pointer_1
 
 def init(graph_str):
-    global main_list
     print("init")
     graph = create_graph_from_str(graph_str)
 
-    fm(graph)
+    main_list, list_0, list_1, pointer_0, pointer_1 = fm(graph)
 
-    #draw_graph(graph, "two-nodes-color1.pdf")
+    # draw_graph(graph, "two-nodes-color1.pdf")
 
-    #print(main_list)
+    print(main_list)
 
-    multistart_ls()
+    main_list, list_0, list_1 = multistart_ls(main_list, list_0, list_1, pointer_0, pointer_1)
     iterated_ls(main_list, list_0, list_1, pointer_0, pointer_1)
     genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
 
-    #print(main_list)
+    print(main_list)
 
-    #draw_graph(graph, "two-nodes-color2.pdf")
+    # draw_graph(graph, "two-nodes-color2.pdf")
 
     return Graph()
 
@@ -60,7 +56,7 @@ def fm(graph):
     print(len(a))
     print(len(b))
 
-    setup_main_list(graph)
+    return setup_main_list(graph)
 
     # compute gains
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
@@ -91,52 +87,50 @@ def partition(graph):
     return (a, b)
 
 
-def multistart_ls():
+def multistart_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("mls")
-    global main_list
-    global list_0, list_1
-    global pointer_0, pointer_1
 
     for i in range(0, 500):
-        if i % 2 == 0:                                                                  # Flipping 0,1,0,1..
+        if i % 2 == 0:  # Flipping 0,1,0,1..
+            main_list, list_0, list_1 = update_list(1, main_list, list_0, pointer_0, list_0, list_1)
             for j in reversed(range(-30, 31)):
                 if list_0[j] != -1:
                     pointer_0 = j
                     break
-            update_list(1, list_0, pointer_0)
         else:
+            main_list, list_0, list_1 = update_list(0, main_list, list_1, pointer_1, list_0, list_1)
             for j in reversed(range(-30, 31)):
                 if list_1[j] != -1:
                     pointer_1 = j
                     break
-            update_list(0, list_1, pointer_1)
+
+    return main_list, list_0, list_1
 
 
-def update_list(new_partitioning, list_x, pointer):
-    global main_list
-    global list_0, list_1
+def update_list(new_partitioning, main_list, list_x, pointer, list_0, list_1):
+    flipped_number = list_x[pointer]  # Determining what to flip
+    main_list[flipped_number].partitioning = new_partitioning  # Flipping
+    print(flipped_number)
+    print(list_0)
 
-    flipped_number = list_x[pointer]                                                    # Determining what to flip
-    main_list[flipped_number].partitioning = new_partitioning                           # Flipping
-
-    neighbours = main_list[flipped_number].connected_vertexes                           # Updating neighbours
-    random.shuffle(neighbours)                                                          # Keep unbiased
+    neighbours = main_list[flipped_number].connected_vertexes  # Updating neighbours
+    random.shuffle(neighbours)  # Keep unbiased
 
     for neighbour in neighbours:
         # I start by updating everything around the neighbours without updating the neighbours
-        if (main_list[neighbour].successor is None and                                  # The neighbour is on top
-            main_list[neighbour].predecessor is not None):
+        if (main_list[neighbour].successor is None and  # The neighbour is on top
+                main_list[neighbour].predecessor is not None):
             if main_list[neighbour].partitioning == 0:
-                list_0[main_list[neighbour].gain] = main_list[neighbour].predecessor    # Make the pred the top
+                list_0[main_list[neighbour].gain] = main_list[neighbour].predecessor  # Make the pred the top
             else:
-                list_1[main_list[neighbour].gain] = main_list[neighbour].predecessor    # Make the pred the top
-            main_list[main_list[neighbour].predecessor].successor = None                # Update suc of the pred
-            main_list[neighbour].predecessor = None                                     # Resetting pred of neighbour
+                list_1[main_list[neighbour].gain] = main_list[neighbour].predecessor  # Make the pred the top
+            main_list[main_list[neighbour].predecessor].successor = None  # Update suc of the pred
+            main_list[neighbour].predecessor = None  # Resetting pred of neighbour
 
-        elif (main_list[neighbour].predecessor is None and                              # The neighbour is below
+        elif (main_list[neighbour].predecessor is None and  # The neighbour is below
               main_list[neighbour].successor is not None):
-            main_list[main_list[neighbour].successor].predecessor = None                # Update pred of the suc
-            main_list[neighbour].successor = None                                       # Resetting suc of neighbour
+            main_list[main_list[neighbour].successor].predecessor = None  # Update pred of the suc
+            main_list[neighbour].successor = None  # Resetting suc of neighbour
 
         elif (main_list[neighbour].predecessor is None and  # The neighbour is below
               main_list[neighbour].successor is None):
@@ -146,53 +140,56 @@ def update_list(new_partitioning, list_x, pointer):
                 list_1[main_list[neighbour].gain] = -1
 
         else:
-            main_list[main_list[neighbour].successor].predecessor = main_list[neighbour].predecessor        # correct?
-            main_list[main_list[neighbour].predecessor].successor = main_list[neighbour].successor          # correct?
+            main_list[main_list[neighbour].successor].predecessor = main_list[neighbour].predecessor  # correct?
+            main_list[main_list[neighbour].predecessor].successor = main_list[neighbour].successor  # correct?
             main_list[neighbour].successor = None
             main_list[neighbour].predecessor = None
 
         # Now updating the neighbours
         if main_list[neighbour].partitioning != new_partitioning:
-            main_list[neighbour].gain += 2                                              # Changing gain of neighbour
+            main_list[neighbour].gain += 2  # Changing gain of neighbour
         if main_list[neighbour].partitioning == new_partitioning:
             main_list[neighbour].gain -= 2
 
         if main_list[neighbour].partitioning == 0:
-            move_neigbours(list_0, neighbour)
+            main_list, list_x, neighbour = move_neigbours(main_list, list_0, neighbour)
         else:
-            move_neigbours(list_1, neighbour)
+            main_list, list_x, neighbour = move_neigbours(main_list, list_1, neighbour)
 
-        if (main_list[flipped_number].successor is None and                                  # The flipped.nr is on top
-            main_list[flipped_number].predecessor is not None):
-            list_x[main_list[flipped_number].gain] = main_list[flipped_number].predecessor   # Make the pred the top
-            main_list[main_list[flipped_number].predecessor].successor = None                # Update suc of the pred
-            main_list[flipped_number].predecessor = None                                     # Resetting pred of flipped.nr
+        if (main_list[flipped_number].successor is None and  # The flipped.nr is on top
+                main_list[flipped_number].predecessor is not None):
+            list_x[main_list[flipped_number].gain] = main_list[flipped_number].predecessor  # Make the pred the top
+            main_list[main_list[flipped_number].predecessor].successor = None  # Update suc of the pred
+            main_list[flipped_number].predecessor = None  # Resetting pred of flipped.nr
 
-        elif (main_list[flipped_number].predecessor is None and                              # The flipped.nr is below
+        elif (main_list[flipped_number].predecessor is None and  # The flipped.nr is below
               main_list[flipped_number].successor is not None):
-            main_list[main_list[flipped_number].successor].predecessor = None                # Update pred of the suc
-            main_list[flipped_number].successor = None                                       # Resetting suc of flipped.nr
+            main_list[main_list[flipped_number].successor].predecessor = None  # Update pred of the suc
+            main_list[flipped_number].successor = None  # Resetting suc of flipped.nr
 
         elif (main_list[flipped_number].predecessor is None and
               main_list[flipped_number].successor is None):
             list_x[main_list[flipped_number].gain] = -1
 
         else:
-            main_list[main_list[flipped_number].successor].predecessor = main_list[flipped_number].predecessor# correct?
+            main_list[main_list[flipped_number].successor].predecessor = main_list[
+                flipped_number].predecessor  # correct?
             main_list[main_list[flipped_number].predecessor].successor = main_list[flipped_number].successor  # correct?
             main_list[flipped_number].successor = None
             main_list[flipped_number].predecessor = None
 
-    main_list[flipped_number].gain = -1 * main_list[flipped_number].gain                     # Updating gain
+    main_list[flipped_number].gain = -1 * main_list[flipped_number].gain  # Updating gain
+
+    return main_list, list_0, list_1
 
 
-def move_neigbours(list_x, neighbour):
-    global main_list
-
+def move_neigbours(main_list, list_x, neighbour):
     if list_x[main_list[neighbour].gain] != -1:
         main_list[neighbour].predecessor = list_x[main_list[neighbour].gain]
         main_list[list_x[main_list[neighbour].gain]].successor = main_list[neighbour].vertex_number
-    list_x[main_list[neighbour].gain] = main_list[neighbour].vertex_number          # putting the neighbour on top
+    list_x[main_list[neighbour].gain] = main_list[neighbour].vertex_number  # putting the neighbour on top
+
+    return main_list, list_x, neighbour
 
 
 def iterated_ls(main_list, list_0, list_1, pointer_0, pointer_1):
@@ -211,9 +208,6 @@ def setup_main_list(graph):
     # connected vertex
     # predecessor
     # successor
-    global main_list
-    global list_0, list_1
-    global pointer_0, pointer_1
 
     main_list = []
     for i in range(0, 500):
@@ -275,6 +269,9 @@ def setup_main_list(graph):
     # print(list_0)
     # print(list_1)
 
+    return main_list, list_0, list_1, pointer_0, pointer_1
+
+
 # Ignore, this is old stuff of yoav, but I want to keep it in for now
 
 """
@@ -285,7 +282,7 @@ def setup_main_list(graph):
     # 3 = connected vertex
     # 4 = predecessor
     # 5 = successor
-    
+
     main_list = []
     for i in range(0, 500):
         if i in a:
@@ -294,7 +291,7 @@ def setup_main_list(graph):
         if i in b:
             tup = [i, 1, None, [int(n) for n in graph.vertex(i).all_neighbors()], None, None]
             main_list.append(tup)
-            
+
     for j in reversed(range(0, 500)):
         i = numbers[j]
         gain = 0
@@ -485,7 +482,3 @@ def setup_main_list(graph):
             main_list[to_be_flipped_number].gain = -1 * main_list[to_be_flipped_number].gain  # Updating gain
             # ToDo: pointer!!! while list_0/1 = -1 keep dropping
 """
-
-
-
-
