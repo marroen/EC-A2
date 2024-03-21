@@ -16,9 +16,12 @@ def init(graph_str):
     global final_main_list
     print("init")
     graph = create_graph_from_str(graph_str)
-
-# MLS --------------------------------------------------------------
     smallest_cut_size = 10000000
+    number_mutations_without_improvement = 0
+    stop_ils = False
+
+    # MLS --------------------------------------------------------------
+    '''
 
     for i in range(0, 20):                                          # How many resets do we want?
         fm(graph)
@@ -35,11 +38,42 @@ def init(graph_str):
     print(smallest_cut_size)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-# MLS --------------------------------------------------------------
+    '''
+    # MLS --------------------------------------------------------------
 
-    # fm(graph)
+    # ILS --------------------------------------------------------------
+    '''
+    fm(graph)
+    draw_graph(graph, "two-nodes-color1.pdf")
 
-    # iterated_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    smallest_cut_size = multistart_ls(graph)
+    final_main_list = deepcopy(main_list)
+    while stop_ils is False:
+        reset_main_list()
+        mutate_main_list(smallest_cut_size)
+        reset_main_list()
+        final_cut_size = multistart_ls(graph)
+
+        print(smallest_cut_size)
+        print(final_cut_size)
+
+        if final_cut_size < smallest_cut_size:
+            final_main_list = deepcopy(main_list)
+            smallest_cut_size = final_cut_size
+            number_mutations_without_improvement = 0
+
+        else:
+            main_list = deepcopy(final_main_list)
+            number_mutations_without_improvement += 1
+            if number_mutations_without_improvement == 100:
+                stop_ils = True
+
+    final_main_list = deepcopy(main_list)
+    new_graph(graph)
+    draw_graph(graph, "two-nodes-color2.pdf")
+    '''
+    # ILS --------------------------------------------------------------
+
     # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
 
     return Graph()
@@ -128,6 +162,7 @@ def multistart_ls(graph):
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
+    mutation_bool = False
 
     cut_size = 0
     lowest_cut_size = 1000000000
@@ -146,7 +181,7 @@ def multistart_ls(graph):
                     if list_0[j] != -1:
                         pointer_0 = j
                         break
-                new_cut_size = update_list(1, list_0, pointer_0, cut_size)
+                new_cut_size = update_list(1, list_0, pointer_0, cut_size, mutation_bool, 0)
                 cut_size = new_cut_size
 
             else:
@@ -154,7 +189,7 @@ def multistart_ls(graph):
                     if list_1[j] != -1:
                         pointer_1 = j
                         break
-                new_cut_size = update_list(0, list_1, pointer_1, cut_size)
+                new_cut_size = update_list(0, list_1, pointer_1, cut_size, mutation_bool, 0)
                 if new_cut_size < lowest_cut_size:
                     main_list_best = []
                     main_list_best = deepcopy(main_list)
@@ -168,23 +203,56 @@ def multistart_ls(graph):
             cut_size = lowest_cut_size
             reset_main_list()
 
-    test = 0
+    #test = 0
     #print(main_list)
-    print(lowest_cut_size)
-    print(cut_size)
-    for element in main_list:
-        if element.partitioning ==1:
-            test += 1
+    #print(lowest_cut_size)
+    #print(cut_size)
+    #for element in main_list:
+        #if element.partitioning ==1:
+            #test += 1
     #print(test)
 
     return cut_size
 
 
-def update_list(new_partitioning, list_x, pointer, cut_size):
+def mutate_main_list(cut_size):
+    global main_list, main_list_best
+    global list_0, list_1
+    global pointer_0, pointer_1
+    mutation_bool = True
+
+    list_zeros = []
+    list_ones = []
+
+    for element in main_list:
+        if element.partitioning == 0:
+            list_zeros.append(element.vertex_number)
+        if element.partitioning == 1:
+            list_ones.append(element.vertex_number)
+
+    for i in range(0, 70):                                   # always dividable by 2!
+        if i % 2 == 0:                                      # Flipping 0,1,0,1..
+            random.shuffle(list_zeros)
+            mutation_spot = list_zeros[0]
+            list_zeros.remove(mutation_spot)
+            cut_size = update_list(1, list_0, pointer_0, cut_size, mutation_bool, mutation_spot)
+        else:
+            random.shuffle(list_ones)
+            mutation_spot = list_ones[0]
+            list_ones.remove(mutation_spot)
+            cut_size = update_list(0, list_1, pointer_1, cut_size, mutation_bool, mutation_spot)
+
+    return cut_size
+
+
+def update_list(new_partitioning, list_x, pointer, cut_size, mutation_bool, mutation_spot):
     global main_list
     global list_0, list_1
 
-    flipped_number = list_x[pointer]                                                    # Determining what to flip
+    if mutation_bool:
+        flipped_number = mutation_spot
+    else:
+        flipped_number = list_x[pointer]                                                    # Determining what to flip
 
     if main_list[flipped_number].gain > 0:
         cut_size -= main_list[flipped_number].gain
@@ -267,6 +335,9 @@ def update_list(new_partitioning, list_x, pointer, cut_size):
 def move_neigbours(list_x, neighbour):
     global main_list
 
+    #print(main_list[neighbour].vertex_number)
+    #print(main_list[neighbour].gain)
+    #print()
     if list_x[main_list[neighbour].gain] != -1:
         main_list[neighbour].predecessor = list_x[main_list[neighbour].gain]
         main_list[list_x[main_list[neighbour].gain]].successor = main_list[neighbour].vertex_number
