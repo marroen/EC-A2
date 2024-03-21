@@ -74,7 +74,7 @@ def init(graph_str):
     '''
     # ILS --------------------------------------------------------------
 
-    # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)-
 
     return Graph()
 
