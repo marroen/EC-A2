@@ -6,6 +6,7 @@ class Vertex:
         self._connected_vertexes = neighbors
         self._predecessor = None
         self._successor = None
+        self._flipped = False
 
     @property
     def vertex_number(self):
@@ -55,8 +56,17 @@ class Vertex:
     def successor(self, value):
         self._successor = value
 
+    @property
+    def flipped(self):
+        return self._flipped
+
+    @flipped.setter
+    def flipped(self, value):
+        self._flipped = value
+
     def __str__(self):
-        return f"Vertex Number: {self.vertex_number} " \
+        return f"flipped: {self.flipped} "\
+               f"Vertex Number: {self.vertex_number} " \
                f"Partitioning: {self.partitioning} " \
                f"Gain: {self.gain} " \
                f"Connected Vertexes: {self.connected_vertexes} " \
