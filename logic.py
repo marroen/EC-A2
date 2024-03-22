@@ -22,7 +22,6 @@ def init(graph_str):
 
     # MLS --------------------------------------------------------------
     '''
-
     for i in range(0, 20):                                          # How many resets do we want?
         fm(graph)
 
@@ -42,7 +41,7 @@ def init(graph_str):
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
-    '''
+    """
     fm(graph)
     draw_graph(graph, "two-nodes-color1.pdf")
 
@@ -65,13 +64,13 @@ def init(graph_str):
         else:
             main_list = deepcopy(final_main_list)
             number_mutations_without_improvement += 1
-            if number_mutations_without_improvement == 100:
+            if number_mutations_without_improvement == 10:
                 stop_ils = True
 
     final_main_list = deepcopy(main_list)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    '''
+    """
     # ILS --------------------------------------------------------------
 
     # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
@@ -230,7 +229,7 @@ def mutate_main_list(cut_size):
         if element.partitioning == 1:
             list_ones.append(element.vertex_number)
 
-    for i in range(0, 70):                                   # always dividable by 2!
+    for i in range(0, 46):                                   # needs to always be dividable by 2!
         if i % 2 == 0:                                      # Flipping 0,1,0,1..
             random.shuffle(list_zeros)
             mutation_spot = list_zeros[0]
