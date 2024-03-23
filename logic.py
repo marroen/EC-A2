@@ -9,6 +9,7 @@ global main_list
 global main_list_best, final_main_list
 global list_0, list_1
 global pointer_0, pointer_1
+global gls_list
 
 
 def init(graph_str):
@@ -38,6 +39,7 @@ def init(graph_str):
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
     '''
+
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
@@ -74,6 +76,26 @@ def init(graph_str):
     # ILS --------------------------------------------------------------
 
     # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    global gls_list, main_list, main_list_best
+
+    gls_list = []
+    for i in range(50):
+        fm(graph)
+        cut_size = multistart_ls(graph)
+        gls_list.append([deepcopy(main_list), cut_size])
+    gls_list.sort(key=lambda x: x[1])
+    random_nr_1 = random.randint(0, 49)
+    random_nr_2 = random.randint(0, 49)
+    while random_nr_1 == random_nr_2:
+        random_nr_2 = random.randint(0, 49)
+    parent_1 = gls_list[random_nr_1][0]
+    parent_2 = gls_list[random_nr_2][0]
+
+
+
+
+
+
 
     return Graph()
 
@@ -360,8 +382,6 @@ def setup_main_list(graph):
     # predecessor
     # successor
     global main_list
-    global list_0, list_1
-    global pointer_0, pointer_1
 
     main_list = []
     for i in range(0, 500):
@@ -369,6 +389,36 @@ def setup_main_list(graph):
             main_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
         if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":  # ToDo: works?
             main_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
+
+    setup()
+
+def setup_child(parent_1, parent_2):
+    global main_list
+
+    main_list = deepcopy(parent_1)
+    difference_list = []
+    list_01 = []
+    zeros = 0
+    for i in range(0, 500):
+        if parent_1[i].partitioning != parent_2[i].partitioning:
+            difference_list.append(i)
+        else:
+            if parent_1[i].partitioning == 0:
+                zeros += 1
+    for i in range(250 - zeros):
+        list_01.append(0)
+    for i in range(250 - (500 - len(difference_list) - zeros)):
+        list_01.append(1)
+    random.shuffle(list_01)
+
+    for i in range(len(difference_list)):
+        main_list[i] = Vertex(difference_list[i], list_01[i], [int(n) for n in parent_1[difference_list[i]].connected_vertexes])
+
+
+def setup():
+    global main_list
+    global list_0, list_1
+    global pointer_0, pointer_1
 
     list_0 = {i: -1 for i in range(-30, 31)}
     list_1 = {i: -1 for i in range(-30, 31)}
@@ -422,7 +472,6 @@ def setup_main_list(graph):
     # print(main_list)
     # print(list_0)
     # print(list_1)
-
 
 def reset_main_list():
     global list_0, list_1
