@@ -29,6 +29,9 @@ def init(graph_str):
     '''
     #for i in range(0, 20):                                          # How many resets do we want?
     while fm_passes < 10000:
+    """
+    print('mls')
+    for i in range(0, 20)       # Not specified in assignment. ToDo:How many resets do we want?
         fm(graph)
 
         if i == 0:
@@ -49,6 +52,7 @@ def init(graph_str):
 
     # ILS --------------------------------------------------------------
     """
+    print('ils')
     fm(graph)
     draw_graph(graph, "two-nodes-color1.pdf")
 
@@ -60,6 +64,7 @@ def init(graph_str):
         reset_main_list()
         final_cut_size = multistart_ls(graph)
 
+        print('')
         print(smallest_cut_size)
         print(final_cut_size)
 
@@ -71,7 +76,7 @@ def init(graph_str):
         else:
             main_list = deepcopy(final_main_list)
             number_mutations_without_improvement += 1
-            if number_mutations_without_improvement == 10:
+            if number_mutations_without_improvement == 10:  # Not specified in assignment. ToDo: how high do we want this should be?
                 stop_ils = True
 
     final_main_list = deepcopy(main_list)
@@ -80,7 +85,7 @@ def init(graph_str):
     """
     # ILS --------------------------------------------------------------
 
-    # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+    # GLS --------------------------------------------------------------
 
     global gls_list, main_list, main_list_best
 
@@ -88,20 +93,39 @@ def init(graph_str):
     for i in range(50):
         fm(graph)
         cut_size = multistart_ls(graph)
+        print(cut_size)
         gls_list.append([deepcopy(main_list), cut_size])
     gls_list.sort(key=lambda x: x[1])
-    random_nr_1 = random.randint(0, 49)
-    random_nr_2 = random.randint(0, 49)
-    while random_nr_1 == random_nr_2:
+    '''for i in gls_list:
+        print(i[1])'''
+
+    for i in range(100):        # This value is not specified in the assignment ToDo: should be tested.
+        print('gls')            # ToDo: It probably should be higher too, but this takes more time
+        random_nr_1 = random.randint(0, 49)
         random_nr_2 = random.randint(0, 49)
-    parent_1 = gls_list[random_nr_1][0]
-    parent_2 = gls_list[random_nr_2][0]
+        while random_nr_1 == random_nr_2:
+            random_nr_2 = random.randint(0, 49)
+        parent_1 = deepcopy(gls_list[random_nr_1][0])
+        parent_2 = deepcopy(gls_list[random_nr_2][0])
 
+        setup_child(parent_1, parent_2)
 
+        cut_size = multistart_ls(graph)
+        print(cut_size)
+        if cut_size <= gls_list[49][1]:
+            gls_list[49] = [deepcopy(main_list), cut_size]
+            gls_list.sort(key=lambda x: x[1])
 
+    '''for i in gls_list:
+        print(i[1])'''
+    final_main_list = deepcopy(gls_list[0][0])
+    print('')
+    print(gls_list[0][1])
 
+    new_graph(graph)
+    draw_graph(graph, "two-nodes-color2.pdf")
 
-
+    # GLS --------------------------------------------------------------
 
     return Graph()
 
@@ -134,8 +158,8 @@ def fm(graph):
     # partition graph (not the arrays)
     a, b = partition(graph)
 
-    print(len(a))
-    print(len(b))
+    # print(len(a))
+    # print(len(b))
 
     setup_main_list(graph)
 
@@ -185,7 +209,6 @@ def new_graph(graph):
 
 
 def multistart_ls(graph):
-    print("mls")
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
@@ -257,7 +280,7 @@ def mutate_main_list(cut_size):
         if element.partitioning == 1:
             list_ones.append(element.vertex_number)
 
-    for i in range(0, 46):                                   # needs to always be dividable by 2!
+    for i in range(0, 120):     # Needs to always be divisible by 2! Not specified in assignment how high it should be, ToDo: find the sweetspot?
         if i % 2 == 0:                                      # Flipping 0,1,0,1..
             random.shuffle(list_zeros)
             mutation_spot = list_zeros[0]
@@ -391,9 +414,9 @@ def setup_main_list(graph):
 
     main_list = []
     for i in range(0, 500):
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":  # ToDo: works?
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
             main_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":  # ToDo: works?
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
             main_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
 
     setup()
@@ -403,6 +426,15 @@ def setup_child(parent_1, parent_2):
 
     main_list = deepcopy(parent_1)
     difference_list = []
+    hamming_distance = 0
+
+    for i in range(0, 500):
+        if parent_1[i].partitioning != parent_2[i].partitioning:
+            hamming_distance += 1
+    if hamming_distance > 250:
+        for i in range(500):
+            parent_2[i].partitioning = 1 - parent_2[i].partitioning
+
     list_01 = []
     zeros = 0
     for i in range(0, 500):
@@ -416,9 +448,13 @@ def setup_child(parent_1, parent_2):
     for i in range(250 - (500 - len(difference_list) - zeros)):
         list_01.append(1)
     random.shuffle(list_01)
+# ToDo: can/should we do this faster?
 
     for i in range(len(difference_list)):
-        main_list[i] = Vertex(difference_list[i], list_01[i], [int(n) for n in parent_1[difference_list[i]].connected_vertexes])
+        main_list[difference_list[i]] = Vertex(difference_list[i], list_01[i], [int(n) for n in parent_1[difference_list[i]].connected_vertexes])
+
+    setup()
+
 
 
 def setup():
@@ -433,6 +469,11 @@ def setup():
     random.shuffle(numbers)
     pointer_0 = -100
     pointer_1 = -100
+
+    for element in main_list:
+        element.flipped = False
+        element.successor = None
+        element.predecessor = None
 
     for j in range(0, 500):
         i = numbers[j]
