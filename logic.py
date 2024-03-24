@@ -10,20 +10,25 @@ global main_list_best, final_main_list
 global list_0, list_1
 global pointer_0, pointer_1
 global gls_list
+global fm_passes
 
 
 def init(graph_str):
     global main_list, main_list_best
     global final_main_list
+    global fm_passes
     print("init")
     graph = create_graph_from_str(graph_str)
     smallest_cut_size = 10000000
     number_mutations_without_improvement = 0
     stop_ils = False
+    fm_passes = 0
+
 
     # MLS --------------------------------------------------------------
     '''
-    for i in range(0, 20):                                          # How many resets do we want?
+    #for i in range(0, 20):                                          # How many resets do we want?
+    while fm_passes < 10000:
         fm(graph)
 
         if i == 0:
@@ -76,6 +81,7 @@ def init(graph_str):
     # ILS --------------------------------------------------------------
 
     # genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1)
+
     global gls_list, main_list, main_list_best
 
     gls_list = []
