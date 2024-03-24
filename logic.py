@@ -24,29 +24,25 @@ def init(graph_str):
     stop_ils = False
     fm_passes = 0
 
-
     # MLS --------------------------------------------------------------
-    '''
-    #for i in range(0, 20):                                          # How many resets do we want?
-    while fm_passes < 10000:
-    """
+    #for i in range(0, 20):                                          # How many resets do we want? Not specified in assignment. ToDo:How many resets do we want?
     print('mls')
-    for i in range(0, 20)       # Not specified in assignment. ToDo:How many resets do we want?
+    while fm_passes < 10000:
         fm(graph)
 
-        if i == 0:
+        if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
 
         final_cut_size = multistart_ls(graph)
         if final_cut_size < smallest_cut_size:
             smallest_cut_size = final_cut_size
             final_main_list = deepcopy(main_list)
+        print(fm_passes)
 
     print("")
     print(smallest_cut_size)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    '''
 
     # MLS --------------------------------------------------------------
 
@@ -86,7 +82,7 @@ def init(graph_str):
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
-
+    """
     global gls_list, main_list, main_list_best
 
     gls_list = []
@@ -124,7 +120,7 @@ def init(graph_str):
 
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-
+    """
     # GLS --------------------------------------------------------------
 
     return Graph()
@@ -213,6 +209,7 @@ def multistart_ls(graph):
     global list_0, list_1
     global pointer_0, pointer_1
     mutation_bool = False
+    global fm_passes
 
     cut_size = 0
     lowest_cut_size = 1000000000
@@ -252,6 +249,8 @@ def multistart_ls(graph):
             main_list = deepcopy(main_list_best)
             cut_size = lowest_cut_size
             reset_main_list()
+
+        fm_passes += 1
 
     #test = 0
     #print(main_list)
@@ -467,8 +466,6 @@ def setup():
 
     numbers = list(range(0, 500))
     random.shuffle(numbers)
-    pointer_0 = -100
-    pointer_1 = -100
 
     for element in main_list:
         element.flipped = False
@@ -494,8 +491,6 @@ def setup():
                 main_list[i].predecessor = previous_number
                 main_list[i].gain = gain
                 list_0[gain] = i
-            if gain > pointer_0:
-                pointer_0 = gain
 
         else:
             if len(main_list[i].connected_vertexes) > 0:
@@ -513,8 +508,6 @@ def setup():
                 main_list[i].predecessor = previous_number
                 main_list[i].gain = gain
                 list_1[gain] = i
-            if gain > pointer_0:
-                pointer_1 = gain
 
     # print(main_list)
     # print(list_0)
