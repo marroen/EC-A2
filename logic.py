@@ -5,6 +5,7 @@ from graph_tool.all import *
 import random
 from Vertex import Vertex
 
+global initial_list
 global main_list
 global main_list_best, final_main_list
 global list_0, list_1
@@ -27,21 +28,24 @@ def init(graph_str):
     # MLS --------------------------------------------------------------
     #for i in range(0, 20):                                          # How many resets do we want? Not specified in assignment. ToDo:How many resets do we want?
     print('mls')
-    partition(graph)
-    setup_main_list(graph)
-    fm()
+    setup_graph(graph)
+    setup_initial_list(graph)
+    main_list = initial_list
+    random_partitions = create_random_partitions()
+    
     while fm_passes < 10000:
+        fm()
         if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
 
-        final_cut_size = multistart_ls(graph)
+        final_cut_size = multistart_ls(graph, random_partitions)
         if final_cut_size < smallest_cut_size:
             smallest_cut_size = final_cut_size
             final_main_list = deepcopy(main_list)
-        print(fm_passes)
+        print("FM pass # :", fm_passes)
 
     print("")
-    print(smallest_cut_size)
+    print("smallest cut size: ", smallest_cut_size)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
 
@@ -164,7 +168,7 @@ def fm():
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
 
 
-def partition(graph):
+def setup_graph(graph):
     a = set()
     b = set()
 
@@ -188,6 +192,35 @@ def partition(graph):
 
     return (a, b)
 
+def setup_initial_list(graph):
+    # Here I set up the entire main_list meaning I determine:
+    # vertex number
+    # partitioning (0 or 1)
+    # gain
+    # connected vertex
+    # predecessor
+    # successor
+    global main_list
+
+    main_list = []
+    for i in range(0, 500):
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
+            initial_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
+            initial_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
+
+def create_random_partitions():
+    # want to return 2000 tuples of subsets of vertices
+    total_vertices = len(initial_list)
+    partition_size = total_vertices // 2
+    partitions = []
+
+    for _ in range(2000):
+        a = set(random.sample(initial_list, partition_size))
+        b = set(initial_list) - a
+        partitions.append((a, b))
+    return partitions
+
 
 def new_graph(graph):
     a = set()
@@ -205,7 +238,7 @@ def new_graph(graph):
             vcolor[curr_v] = "#2ec27e"
 
 
-def multistart_ls(graph):
+def multistart_ls(graph, random_partitions):
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
@@ -216,6 +249,7 @@ def multistart_ls(graph):
     lowest_cut_size = 1000000000
     cut_size_lowered = True
 
+    # finding current cut size
     for edge in graph.edges():
         a, b = edge
         if main_list[int(a)].partitioning != main_list[int(b)].partitioning:
@@ -402,22 +436,6 @@ def genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("gls")
 
 
-def setup_main_list(graph):
-    # Here I set up the entire main_list meaning I determine:
-    # vertex number
-    # partitioning (0 or 1)
-    # gain
-    # connected vertex
-    # predecessor
-    # successor
-    global main_list
-
-    main_list = []
-    for i in range(0, 500):
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
-            main_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
-            main_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
 
 
 def setup_child(parent_1, parent_2):
