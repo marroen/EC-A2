@@ -27,9 +27,10 @@ def init(graph_str):
     # MLS --------------------------------------------------------------
     #for i in range(0, 20):                                          # How many resets do we want? Not specified in assignment. ToDo:How many resets do we want?
     print('mls')
+    partition(graph)
+    setup_main_list(graph)
+    fm()
     while fm_passes < 10000:
-        fm(graph)
-
         if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
 
@@ -149,15 +150,15 @@ def create_graph_from_str(graph_str):
     return graph
 
 
-def fm(graph):
+def fm():
     print("fm")
     # partition graph (not the arrays)
-    a, b = partition(graph)
+    #a, b = partition(graph)
 
     # print(len(a))
     # print(len(b))
 
-    setup_main_list(graph)
+    setup()
 
     # compute gains
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
@@ -418,7 +419,6 @@ def setup_main_list(graph):
         if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
             main_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
 
-    setup()
 
 def setup_child(parent_1, parent_2):
     global main_list
