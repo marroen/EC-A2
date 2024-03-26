@@ -4,6 +4,7 @@ from chromosome import Chromosome
 from graph_tool.all import *
 import random
 from Vertex import Vertex
+import time
 
 global main_list
 global main_list_best, final_main_list
@@ -11,6 +12,7 @@ global list_0, list_1
 global pointer_0, pointer_1
 global gls_list
 global fm_passes
+
 
 
 def init(graph_str):
@@ -25,46 +27,55 @@ def init(graph_str):
     setup_graph(graph)
 
     # MLS --------------------------------------------------------------
-    
-    print('mls')
-    initial_list = setup_initial_list(graph)
-    random_partitions = create_random_partitions(initial_list, 2500)
-    
-    while fm_passes < 10000:
-        main_list = random_partitions.pop()
-        setup()
-        if fm_passes == 0:
-            draw_graph(graph, "two-nodes-color1.pdf")
+    """
+    minimal_cutsize_list = []
 
-        final_cut_size = fm(graph)
-        print(final_cut_size)
-        if final_cut_size < smallest_cut_size:
-            smallest_cut_size = final_cut_size
-            final_main_list = deepcopy(main_list)
-        print("FM pass # :", fm_passes)
-        print(smallest_cut_size)
+    for i in range(0, 5):
+        start_time = time.time()
+        #print('mls')
+        initial_list = setup_initial_list(graph)
+        random_partitions = create_random_partitions(initial_list, 2500)
 
+        while fm_passes < 10000:
+            main_list = random_partitions.pop()
+            fm()
+            if fm_passes == 0:
+                draw_graph(graph, "two-nodes-color1.pdf")
+
+            final_cut_size = multistart_ls(graph)
+            #print(final_cut_size)
+            if final_cut_size < smallest_cut_size:
+                smallest_cut_size = final_cut_size
+                final_main_list = deepcopy(main_list)
+            print(fm_passes)
+            #print(smallest_cut_size)
+
+        print(i)
+        minimal_cutsize_list.append((smallest_cut_size, final_main_list, time.time() - start_time))
+
+    minimal_cutsize_list.sort(key=lambda x: x[0])
     print("")
-    print("smallest cut size: ", smallest_cut_size)
+    print(minimal_cutsize_list)
+    final_main_list = deepcopy(minimal_cutsize_list[0][1])
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    
+    """
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
     """
     print('ils')
     main_list = setup_initial_list(graph)
-    setup()
+    fm()
     draw_graph(graph, "two-nodes-color1.pdf")
 
-    smallest_cut_size = fm(graph)
+    smallest_cut_size = multistart_ls(graph)
     final_main_list = deepcopy(main_list)
     while fm_passes < 10000:
         reset_main_list()
         mutate_main_list(smallest_cut_size)
         reset_main_list()
-        final_cut_size = fm(graph)
+        final_cut_size = multistart_ls(graph)
 
         print('')
         print(smallest_cut_size)
@@ -85,22 +96,22 @@ def init(graph_str):
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
-    '''
-    global gls_list, main_list, main_list_best
+    """
+    global gls_list
 
     gls_list = []
     initial_list = setup_initial_list(graph)
     random_partitions = create_random_partitions(initial_list, 50)
     for partition in random_partitions:
         main_list = partition
-        setup()
-        cut_size = fm(graph)
+        fm()
+        cut_size = multistart_ls(graph)
         print(cut_size)
         gls_list.append([deepcopy(main_list), cut_size])
     gls_list.sort(key=lambda x: x[1])
 
-    while fm_passes < 10000:        # This value is not specified in the assignment ToDo: should be tested.
-        print('gls')            # ToDo: It probably should be higher too, but this takes more time
+    while fm_passes < 10000:                # This value is not specified in the assignment ToDo: should be tested.
+        print('gls')                        # ToDo: It probably should be higher too, but this takes more time
         random_nr_1 = random.randint(0, 49)
         random_nr_2 = random.randint(0, 49)
         while random_nr_1 == random_nr_2:
@@ -124,8 +135,7 @@ def init(graph_str):
 
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    '''
-    
+    """
     # GLS --------------------------------------------------------------
 
     return Graph()
@@ -152,6 +162,20 @@ def create_graph_from_str(graph_str):
                 graph.add_edge(i, int(vertex_str[3 + j]) - 1)
 
     return graph
+
+
+def fm():
+    #print("fm")
+    # partition graph (not the arrays)
+    #a, b = partition(graph)
+
+    # print(len(a))
+    # print(len(b))
+
+    setup()
+
+    # compute gains
+    # gain = v.neighbors in B (A) - v.neighbors in A (B)
 
 
 def setup_graph(graph):
@@ -208,7 +232,7 @@ def create_random_partitions(initial_list, total_partitions):
         # partition each random initial partition
         for i in a:
             current_partition[i].partitioning = 0
-        for i in b: 
+        for i in b:
             current_partition[i].partitioning = 1
         partitions.append(current_partition)
     return partitions
@@ -230,7 +254,7 @@ def new_graph(graph):
             vcolor[curr_v] = "#2ec27e"
 
 
-def fm(graph):
+def multistart_ls(graph):
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
