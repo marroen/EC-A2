@@ -20,16 +20,19 @@ def init(graph_str):
     print("init")
     graph = create_graph_from_str(graph_str)
     smallest_cut_size = 10000000
-    number_mutations_without_improvement = 0
-    stop_ils = False
     fm_passes = 0
 
-    # MLS --------------------------------------------------------------
-    #for i in range(0, 20):                                          # How many resets do we want? Not specified in assignment. ToDo:How many resets do we want?
-    print('mls')
-    while fm_passes < 10000:
-        fm(graph)
+    setup_graph(graph)
 
+    # MLS --------------------------------------------------------------
+
+    print('mls')
+    initial_list = setup_initial_list(graph)
+    random_partitions = create_random_partitions(initial_list, 2500)
+
+    while fm_passes < 10000:
+        main_list = random_partitions.pop()
+        fm()
         if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
 
@@ -38,26 +41,26 @@ def init(graph_str):
         if final_cut_size < smallest_cut_size:
             smallest_cut_size = final_cut_size
             final_main_list = deepcopy(main_list)
-
+        print("FM pass # :", fm_passes)
         print(smallest_cut_size)
-        #print(fm_passes)
 
     print("")
-    print(smallest_cut_size)
+    print("smallest cut size: ", smallest_cut_size)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
 
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
-
+    """
     print('ils')
-    fm(graph)
+    main_list = setup_initial_list(graph)
+    fm()
     draw_graph(graph, "two-nodes-color1.pdf")
 
     smallest_cut_size = multistart_ls(graph)
     final_main_list = deepcopy(main_list)
-    while stop_ils is False:
+    while fm_passes < 10000:
         reset_main_list()
         mutate_main_list(smallest_cut_size)
         reset_main_list()
@@ -66,39 +69,37 @@ def init(graph_str):
         print('')
         print(smallest_cut_size)
         print(final_cut_size)
+        print("FM pass # :", fm_passes)
 
         if final_cut_size < smallest_cut_size:
             final_main_list = deepcopy(main_list)
             smallest_cut_size = final_cut_size
-            number_mutations_without_improvement = 0
 
         else:
             main_list = deepcopy(final_main_list)
-            number_mutations_without_improvement += 1
-            if number_mutations_without_improvement == 10:  # Not specified in assignment. ToDo: how high do we want this should be?
-                stop_ils = True
 
     final_main_list = deepcopy(main_list)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-
+    """
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
-    """
+    '''
     global gls_list, main_list, main_list_best
 
     gls_list = []
-    for i in range(50):
-        fm(graph)
+    initial_list = setup_initial_list(graph)
+    random_partitions = create_random_partitions(initial_list, 50)
+    for partition in random_partitions:
+        main_list = partition
+        fm()
         cut_size = multistart_ls(graph)
         print(cut_size)
         gls_list.append([deepcopy(main_list), cut_size])
     gls_list.sort(key=lambda x: x[1])
-    '''for i in gls_list:
-        print(i[1])'''
 
-    for i in range(100):        # This value is not specified in the assignment ToDo: should be tested.
+    while fm_passes < 10000:        # This value is not specified in the assignment ToDo: should be tested.
         print('gls')            # ToDo: It probably should be higher too, but this takes more time
         random_nr_1 = random.randint(0, 49)
         random_nr_2 = random.randint(0, 49)
@@ -111,9 +112,11 @@ def init(graph_str):
 
         cut_size = multistart_ls(graph)
         print(cut_size)
+        print(fm_passes)
         if cut_size <= gls_list[49][1]:
             gls_list[49] = [deepcopy(main_list), cut_size]
             gls_list.sort(key=lambda x: x[1])
+    '''
 
     '''for i in gls_list:
         print(i[1])'''
@@ -123,7 +126,7 @@ def init(graph_str):
 
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    """
+
     # GLS --------------------------------------------------------------
 
     return Graph()
@@ -152,21 +155,21 @@ def create_graph_from_str(graph_str):
     return graph
 
 
-def fm(graph):
+def fm():
     print("fm")
     # partition graph (not the arrays)
-    a, b = partition(graph)
+    #a, b = partition(graph)
 
     # print(len(a))
     # print(len(b))
 
-    setup_main_list(graph)
+    setup()
 
     # compute gains
     # gain = v.neighbors in B (A) - v.neighbors in A (B)
 
 
-def partition(graph):
+def setup_graph(graph):
     a = set()
     b = set()
 
@@ -189,6 +192,41 @@ def partition(graph):
         i += 1
 
     return (a, b)
+
+def setup_initial_list(graph):
+    # Here I set up the entire main_list meaning I determine:
+    # vertex number
+    # partitioning (0 or 1)
+    # gain
+    # connected vertex
+    # predecessor
+    # successor
+
+    initial_list = []
+    for i in range(0, 500):
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
+            initial_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
+        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
+            initial_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
+    return initial_list
+
+def create_random_partitions(initial_list, total_partitions):
+    total_vertices = len(initial_list)
+    partition_size = total_vertices // 2
+    partitions = []
+
+    # create 2500 random initial partitions
+    for _ in range(total_partitions):
+        current_partition = deepcopy(initial_list)
+        a = random.sample(range(total_vertices), partition_size)
+        b = [i for i in range(total_vertices) if i not in a]
+        # partition each random initial partition
+        for i in a:
+            current_partition[i].partitioning = 0
+        for i in b:
+            current_partition[i].partitioning = 1
+        partitions.append(current_partition)
+    return partitions
 
 
 def new_graph(graph):
@@ -218,6 +256,7 @@ def multistart_ls(graph):
     lowest_cut_size = 1000000000
     cut_size_lowered = True
 
+    # finding current cut size
     for edge in graph.edges():
         a, b = edge
         if main_list[int(a)].partitioning != main_list[int(b)].partitioning:
@@ -227,7 +266,7 @@ def multistart_ls(graph):
         cut_size_lowered = False
         for i in range(0, 500):
             if i % 2 == 0:                                                                  # Flipping 0,1,0,1..
-                for j in reversed(range(-30, 31)):
+                for j in reversed(range(-16, 17)):
                     if list_0[j] != -1:
                         pointer_0 = j
                         break
@@ -235,7 +274,7 @@ def multistart_ls(graph):
                 cut_size = new_cut_size
 
             else:
-                for j in reversed(range(-30, 31)):
+                for j in reversed(range(-16, 17)):
                     if list_1[j] != -1:
                         pointer_1 = j
                         break
@@ -282,7 +321,7 @@ def mutate_main_list(cut_size):
         if element.partitioning == 1:
             list_ones.append(element.vertex_number)
 
-    for i in range(0, 120):     # Needs to always be divisible by 2! Not specified in assignment how high it should be, ToDo: find the sweetspot?
+    for i in range(0, 96):     # Needs to always be divisible by 2! Not specified in assignment how high it should be, ToDo: find the sweetspot?
         if i % 2 == 0:                                      # Flipping 0,1,0,1..
             random.shuffle(list_zeros)
             mutation_spot = list_zeros[0]
@@ -404,24 +443,7 @@ def genetic_ls(main_list, list_0, list_1, pointer_0, pointer_1):
     print("gls")
 
 
-def setup_main_list(graph):
-    # Here I set up the entire main_list meaning I determine:
-    # vertex number
-    # partitioning (0 or 1)
-    # gain
-    # connected vertex
-    # predecessor
-    # successor
-    global main_list
 
-    main_list = []
-    for i in range(0, 500):
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
-            main_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
-        if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
-            main_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
-
-    setup()
 
 def setup_child(parent_1, parent_2):
     global main_list
@@ -464,8 +486,8 @@ def setup():
     global list_0, list_1
     global pointer_0, pointer_1
 
-    list_0 = {i: -1 for i in range(-30, 31)}
-    list_1 = {i: -1 for i in range(-30, 31)}
+    list_0 = {i: -1 for i in range(-16, 17)}
+    list_1 = {i: -1 for i in range(-16, 17)}
 
     numbers = list(range(0, 500))
     random.shuffle(numbers)
@@ -519,8 +541,8 @@ def setup():
 def reset_main_list():
     global list_0, list_1
 
-    list_0 = {i: -1 for i in range(-30, 31)}
-    list_1 = {i: -1 for i in range(-30, 31)}
+    list_0 = {i: -1 for i in range(-16, 17)}
+    list_1 = {i: -1 for i in range(-16, 17)}
 
     numbers = list(range(0, 500))
     random.shuffle(numbers)
