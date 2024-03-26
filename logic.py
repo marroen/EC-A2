@@ -73,61 +73,62 @@ def init(graph_str):
 
     # ILS --------------------------------------------------------------
     """
-    stop_ils = False
-    mutation_size = 30
-    old_cut_size = 1000000
+    mutation_size = 40
+    minimal_cutsize_list = []
 
-    while stop_ils is False:
-        #print('ils')
-        #main_list = setup_initial_list(graph)
-        #fm()
+    print('ils')
+    main_list = setup_initial_list(graph)
+    fm()
+    for i in range(0, 5):
+        start_time = time.time()
+        fm_passes = 0
+        smallest_cut_size = 100000
         region_of_attraction = 0
-        av_smallest_cut_size = 0
-        for i in range(0, 5):
-            fm_passes = 0
-            initial_list = setup_initial_list(graph)
-            random_partitions = create_random_partitions(initial_list, 20)
-            main_list = random_partitions.pop()
-            fm()
-            #draw_graph(graph, "two-nodes-color1.pdf")
 
-            smallest_cut_size = multistart_ls(graph)
-            final_main_list = deepcopy(main_list)
-            while fm_passes < 500:
-                reset_main_list()
-                mutate_main_list(smallest_cut_size)
-                reset_main_list()
-                final_cut_size = multistart_ls(graph)
+        initial_list = setup_initial_list(graph)
+        random_partitions = create_random_partitions(initial_list, 1)
+        main_list = random_partitions.pop()
+        fm()
+        #draw_graph(graph, "two-nodes-color1.pdf")
 
-                #print('')
-                #print(smallest_cut_size)
-                #print(final_cut_size)
-                #print("FM pass # :", fm_passes)
+        smallest_cut_size = multistart_ls(graph)
+        final_main_list = deepcopy(main_list)
+        while fm_passes < 10000:
+            reset_main_list()
+            mutate_main_list(smallest_cut_size)
+            reset_main_list()
+            final_cut_size = multistart_ls(graph)
 
-                if final_cut_size == smallest_cut_size:
-                    region_of_attraction += 1
-                if final_cut_size < smallest_cut_size:
-                    final_main_list = deepcopy(main_list)
-                    smallest_cut_size = final_cut_size
+            #print('')
+            #print(smallest_cut_size)
+            #print(final_cut_size)
+            #print("FM pass # :", fm_passes)
 
-                else:
-                    main_list = deepcopy(final_main_list)
+            if final_cut_size == smallest_cut_size:
+                region_of_attraction += 1
+            if final_cut_size < smallest_cut_size:
+                final_main_list = deepcopy(main_list)
+                smallest_cut_size = final_cut_size
 
-            av_smallest_cut_size += smallest_cut_size
+            else:
+                main_list = deepcopy(final_main_list)
 
-        print(f"average smallest cut: {av_smallest_cut_size/5}")
-        print(f"average attraction: {region_of_attraction/5}")
-        print(f"mutation: {mutation_size}")
+        print(i)
+        minimal_cutsize_list.append((smallest_cut_size, time.time() - start_time, final_main_list, region_of_attraction))
 
-        if av_smallest_cut_size < old_cut_size:
-            old_cut_size = av_smallest_cut_size
-            mutation_size += 10
-        else:
-            stop_ils = True
+    minimal_cutsize_list.sort(key=lambda x: x[0])
 
-    print("final cut size and mutation rate")
-    print(old_cut_size)
-    print(mutation_size)
+    print("")
+    print(f'cut 1: {minimal_cutsize_list[0][0]}, time 1: {minimal_cutsize_list[0][1]}, attraction: {minimal_cutsize_list[0][3]}')
+    print(f'cut 2: {minimal_cutsize_list[1][0]}, time 2: {minimal_cutsize_list[1][1]}, attraction: {minimal_cutsize_list[1][3]}')
+    print(f'cut 3: {minimal_cutsize_list[2][0]}, time 3: {minimal_cutsize_list[2][1]}, attraction: {minimal_cutsize_list[2][3]}')
+    print(f'cut 4: {minimal_cutsize_list[3][0]}, time 4: {minimal_cutsize_list[3][1]}, attraction: {minimal_cutsize_list[3][3]}')
+    print(f'cut 5: {minimal_cutsize_list[4][0]}, time 5: {minimal_cutsize_list[4][1]}, attraction: {minimal_cutsize_list[4][3]}')
+
+    final_main_list = deepcopy(minimal_cutsize_list[0][2])
+    new_graph(graph)
+    draw_graph(graph, "two-nodes-color2.pdf")
+
     #final_main_list = deepcopy(main_list)
     #new_graph(graph)
     #draw_graph(graph, "two-nodes-color2.pdf")
@@ -150,12 +151,12 @@ def init(graph_str):
             main_list = partition
             fm()
             cut_size = multistart_ls(graph)
-            print(cut_size)
+            #print(cut_size)
             gls_list.append([deepcopy(main_list), cut_size])
         gls_list.sort(key=lambda x: x[1])
     
         while fm_passes < 10000:
-            print('gls')                   
+            #print('gls')                   
             random_nr_1 = random.randint(0, 49)
             random_nr_2 = random.randint(0, 49)
             while random_nr_1 == random_nr_2:
@@ -166,8 +167,8 @@ def init(graph_str):
             setup_child(parent_1, parent_2)
     
             cut_size = multistart_ls(graph)
-            print(cut_size)
-            print(fm_passes)
+            #print(cut_size)
+            #print(fm_passes)
             if cut_size <= gls_list[49][1]:
                 gls_list[49] = [deepcopy(main_list), cut_size]
                 gls_list.sort(key=lambda x: x[1])
@@ -180,6 +181,7 @@ def init(graph_str):
         #print(gls_list[0][1])
     
         minimal_cutsize_list.append((gls_list[0][1], time.time() - start_time, deepcopy(gls_list[0][0])))
+        print(i)
 
     minimal_cutsize_list.sort(key=lambda x: x[0])
     print("")
