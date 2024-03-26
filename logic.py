@@ -5,7 +5,6 @@ from graph_tool.all import *
 import random
 from Vertex import Vertex
 
-global initial_list
 global main_list
 global main_list_best, final_main_list
 global list_0, list_1
@@ -29,11 +28,11 @@ def init(graph_str):
     #for i in range(0, 20):                                          # How many resets do we want? Not specified in assignment. ToDo:How many resets do we want?
     print('mls')
     setup_graph(graph)
-    setup_initial_list(graph)
-    main_list = initial_list
-    random_partitions = create_random_partitions()
+    initial_list = setup_initial_list(graph)
+    random_partitions = create_random_partitions(initial_list)
     
     while fm_passes < 10000:
+        main_list = random_partitions.pop()
         fm()
         if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
@@ -200,25 +199,31 @@ def setup_initial_list(graph):
     # connected vertex
     # predecessor
     # successor
-    global main_list
 
-    main_list = []
+    initial_list = []
     for i in range(0, 500):
         if graph.vertex_properties["color"][graph.vertex(i)] == "#1c71d8":
             initial_list.append(Vertex(i, 0, [int(n) for n in graph.vertex(i).all_neighbors()]))
         if graph.vertex_properties["color"][graph.vertex(i)] == "#2ec27e":
             initial_list.append(Vertex(i, 1, [int(n) for n in graph.vertex(i).all_neighbors()]))
+    return initial_list
 
-def create_random_partitions():
-    # want to return 2000 tuples of subsets of vertices
+def create_random_partitions(initial_list):
     total_vertices = len(initial_list)
     partition_size = total_vertices // 2
     partitions = []
 
-    for _ in range(2000):
-        a = set(random.sample(initial_list, partition_size))
-        b = set(initial_list) - a
-        partitions.append((a, b))
+    # create 2500 random initial partitions
+    for _ in range(2500):
+        current_partition = deepcopy(initial_list)
+        a = random.sample(range(total_vertices), partition_size)
+        b = [i for i in range(total_vertices) if i not in a]
+        # partition each random initial partition
+        for i in a:
+            current_partition[i].partitioning = 0
+        for i in b: 
+            current_partition[i].partitioning = 1
+        partitions.append(current_partition)
     return partitions
 
 
