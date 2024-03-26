@@ -32,11 +32,11 @@ def init(graph_str):
     
     while fm_passes < 10000:
         main_list = random_partitions.pop()
-        fm()
+        setup()
         if fm_passes == 0:
             draw_graph(graph, "two-nodes-color1.pdf")
 
-        final_cut_size = multistart_ls(graph)
+        final_cut_size = fm(graph)
         print(final_cut_size)
         if final_cut_size < smallest_cut_size:
             smallest_cut_size = final_cut_size
@@ -55,16 +55,16 @@ def init(graph_str):
     """
     print('ils')
     main_list = setup_initial_list(graph)
-    fm()
+    setup()
     draw_graph(graph, "two-nodes-color1.pdf")
 
-    smallest_cut_size = multistart_ls(graph)
+    smallest_cut_size = fm(graph)
     final_main_list = deepcopy(main_list)
     while fm_passes < 10000:
         reset_main_list()
         mutate_main_list(smallest_cut_size)
         reset_main_list()
-        final_cut_size = multistart_ls(graph)
+        final_cut_size = fm(graph)
 
         print('')
         print(smallest_cut_size)
@@ -93,8 +93,8 @@ def init(graph_str):
     random_partitions = create_random_partitions(initial_list, 50)
     for partition in random_partitions:
         main_list = partition
-        fm()
-        cut_size = multistart_ls(graph)
+        setup()
+        cut_size = fm(graph)
         print(cut_size)
         gls_list.append([deepcopy(main_list), cut_size])
     gls_list.sort(key=lambda x: x[1])
@@ -110,22 +110,21 @@ def init(graph_str):
 
         setup_child(parent_1, parent_2)
 
-        cut_size = multistart_ls(graph)
+        cut_size = fm(graph)
         print(cut_size)
         print(fm_passes)
         if cut_size <= gls_list[49][1]:
             gls_list[49] = [deepcopy(main_list), cut_size]
             gls_list.sort(key=lambda x: x[1])
-    '''
+    
 
-    '''for i in gls_list:
-        print(i[1])'''
     final_main_list = deepcopy(gls_list[0][0])
     print('')
     print(gls_list[0][1])
 
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
+    '''
     
     # GLS --------------------------------------------------------------
 
@@ -153,20 +152,6 @@ def create_graph_from_str(graph_str):
                 graph.add_edge(i, int(vertex_str[3 + j]) - 1)
 
     return graph
-
-
-def fm():
-    print("fm")
-    # partition graph (not the arrays)
-    #a, b = partition(graph)
-
-    # print(len(a))
-    # print(len(b))
-
-    setup()
-
-    # compute gains
-    # gain = v.neighbors in B (A) - v.neighbors in A (B)
 
 
 def setup_graph(graph):
@@ -245,7 +230,7 @@ def new_graph(graph):
             vcolor[curr_v] = "#2ec27e"
 
 
-def multistart_ls(graph):
+def fm(graph):
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
@@ -497,6 +482,7 @@ def setup():
         element.successor = None
         element.predecessor = None
 
+    # compute gains
     for j in range(0, 500):
         i = numbers[j]
         gain = 0
