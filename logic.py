@@ -12,6 +12,7 @@ global list_0, list_1
 global pointer_0, pointer_1
 global gls_list
 global fm_passes
+global mutation_size
 
 
 
@@ -51,11 +52,16 @@ def init(graph_str):
             #print(smallest_cut_size)
 
         print(i)
-        minimal_cutsize_list.append((smallest_cut_size, final_main_list, time.time() - start_time))
+        minimal_cutsize_list.append((smallest_cut_size, time.time() - start_time, final_main_list))
 
     minimal_cutsize_list.sort(key=lambda x: x[0])
     print("")
-    print(minimal_cutsize_list)
+    print(f'cut 1: {minimal_cutsize_list[0][0]}, time 1:{minimal_cutsize_list[0][1]}')
+    print(f'cut 2: {minimal_cutsize_list[1][0]}, time 2:{minimal_cutsize_list[1][1]}')
+    print(f'cut 3: {minimal_cutsize_list[2][0]}, time 3:{minimal_cutsize_list[2][1]}')
+    print(f'cut 4: {minimal_cutsize_list[3][0]}, time 4:{minimal_cutsize_list[3][1]}')
+    print(f'cut 5: {minimal_cutsize_list[4][0]}, time 5:{minimal_cutsize_list[4][1]}')
+
     final_main_list = deepcopy(minimal_cutsize_list[0][1])
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
@@ -63,36 +69,56 @@ def init(graph_str):
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
-    """
-    print('ils')
-    main_list = setup_initial_list(graph)
-    fm()
-    draw_graph(graph, "two-nodes-color1.pdf")
+    stop_ils = False
+    mutation_rate = 20
+    old_cut_size = 1000000
 
-    smallest_cut_size = multistart_ls(graph)
-    final_main_list = deepcopy(main_list)
-    while fm_passes < 10000:
-        reset_main_list()
-        mutate_main_list(smallest_cut_size)
-        reset_main_list()
-        final_cut_size = multistart_ls(graph)
+    while stop_ils is False:
+        #print('ils')
+        #main_list = setup_initial_list(graph)
+        #fm()
+        fm_passes = 0
+        initial_list = setup_initial_list(graph)
+        random_partitions = create_random_partitions(initial_list, 20)
+        main_list = random_partitions.pop()
+        fm()
+        #draw_graph(graph, "two-nodes-color1.pdf")
 
-        print('')
-        print(smallest_cut_size)
-        print(final_cut_size)
-        print("FM pass # :", fm_passes)
+        smallest_cut_size = multistart_ls(graph)
+        final_main_list = deepcopy(main_list)
+        while fm_passes < 2000:
+            reset_main_list()
+            mutate_main_list(smallest_cut_size)
+            reset_main_list()
+            final_cut_size = multistart_ls(graph)
 
-        if final_cut_size < smallest_cut_size:
-            final_main_list = deepcopy(main_list)
-            smallest_cut_size = final_cut_size
+            #print('')
+            #print(smallest_cut_size)
+            #print(final_cut_size)
+            #print("FM pass # :", fm_passes)
 
+            if final_cut_size < smallest_cut_size:
+                final_main_list = deepcopy(main_list)
+                smallest_cut_size = final_cut_size
+
+            else:
+                main_list = deepcopy(final_main_list)
+
+        print(f"smallest: {smallest_cut_size}")
+        print(f"mutation: {mutation_rate}")
+        if smallest_cut_size < old_cut_size:
+            old_cut_size = smallest_cut_size
+            mutation_rate += 20
         else:
-            main_list = deepcopy(final_main_list)
+            stop_ils = True
 
-    final_main_list = deepcopy(main_list)
-    new_graph(graph)
-    draw_graph(graph, "two-nodes-color2.pdf")
-    """
+    print("final cut size and mutation rate")
+    print(old_cut_size)
+    print(mutation_rate)
+    #final_main_list = deepcopy(main_list)
+    #new_graph(graph)
+    #draw_graph(graph, "two-nodes-color2.pdf")
+
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
