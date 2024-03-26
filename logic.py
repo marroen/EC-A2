@@ -34,10 +34,13 @@ def init(graph_str):
             draw_graph(graph, "two-nodes-color1.pdf")
 
         final_cut_size = multistart_ls(graph)
+        print(final_cut_size)
         if final_cut_size < smallest_cut_size:
             smallest_cut_size = final_cut_size
             final_main_list = deepcopy(main_list)
-        print(fm_passes)
+
+        print(smallest_cut_size)
+        #print(fm_passes)
 
     print("")
     print(smallest_cut_size)
@@ -47,7 +50,7 @@ def init(graph_str):
     # MLS --------------------------------------------------------------
 
     # ILS --------------------------------------------------------------
-    """
+
     print('ils')
     fm(graph)
     draw_graph(graph, "two-nodes-color1.pdf")
@@ -78,7 +81,7 @@ def init(graph_str):
     final_main_list = deepcopy(main_list)
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    """
+
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
