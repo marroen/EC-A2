@@ -12,6 +12,7 @@ global list_0, list_1
 global pointer_0, pointer_1
 global gls_list
 global fm_passes
+global mutation_size
 
 
 
@@ -19,6 +20,7 @@ def init(graph_str):
     global main_list, main_list_best
     global final_main_list
     global fm_passes
+    global mutation_size
     print("init")
     graph = create_graph_from_str(graph_str)
     smallest_cut_size = 10000000
@@ -35,6 +37,8 @@ def init(graph_str):
         #print('mls')
         initial_list = setup_initial_list(graph)
         random_partitions = create_random_partitions(initial_list, 2500)
+        smallest_cut_size = 100000
+        fm_passes = 0
 
         while fm_passes < 10000:
             main_list = random_partitions.pop()
@@ -47,95 +51,144 @@ def init(graph_str):
             if final_cut_size < smallest_cut_size:
                 smallest_cut_size = final_cut_size
                 final_main_list = deepcopy(main_list)
-            print(fm_passes)
+            #print(fm_passes)
             #print(smallest_cut_size)
 
         print(i)
-        minimal_cutsize_list.append((smallest_cut_size, final_main_list, time.time() - start_time))
+        minimal_cutsize_list.append((smallest_cut_size, time.time() - start_time, final_main_list))
 
     minimal_cutsize_list.sort(key=lambda x: x[0])
     print("")
-    print(minimal_cutsize_list)
-    final_main_list = deepcopy(minimal_cutsize_list[0][1])
+    print(f'cut 1: {minimal_cutsize_list[0][0]}, time 1:{minimal_cutsize_list[0][1]}')
+    print(f'cut 2: {minimal_cutsize_list[1][0]}, time 2:{minimal_cutsize_list[1][1]}')
+    print(f'cut 3: {minimal_cutsize_list[2][0]}, time 3:{minimal_cutsize_list[2][1]}')
+    print(f'cut 4: {minimal_cutsize_list[3][0]}, time 4:{minimal_cutsize_list[3][1]}')
+    print(f'cut 5: {minimal_cutsize_list[4][0]}, time 5:{minimal_cutsize_list[4][1]}')
+
+    final_main_list = deepcopy(minimal_cutsize_list[0][2])
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    """
     # MLS --------------------------------------------------------------
-
+    """
     # ILS --------------------------------------------------------------
     """
-    print('ils')
-    main_list = setup_initial_list(graph)
-    fm()
-    draw_graph(graph, "two-nodes-color1.pdf")
+    stop_ils = False
+    mutation_size = 30
+    old_cut_size = 1000000
 
-    smallest_cut_size = multistart_ls(graph)
-    final_main_list = deepcopy(main_list)
-    while fm_passes < 10000:
-        reset_main_list()
-        mutate_main_list(smallest_cut_size)
-        reset_main_list()
-        final_cut_size = multistart_ls(graph)
+    while stop_ils is False:
+        #print('ils')
+        #main_list = setup_initial_list(graph)
+        #fm()
+        region_of_attraction = 0
+        av_smallest_cut_size = 0
+        for i in range(0, 5):
+            fm_passes = 0
+            initial_list = setup_initial_list(graph)
+            random_partitions = create_random_partitions(initial_list, 20)
+            main_list = random_partitions.pop()
+            fm()
+            #draw_graph(graph, "two-nodes-color1.pdf")
 
-        print('')
-        print(smallest_cut_size)
-        print(final_cut_size)
-        print("FM pass # :", fm_passes)
-
-        if final_cut_size < smallest_cut_size:
+            smallest_cut_size = multistart_ls(graph)
             final_main_list = deepcopy(main_list)
-            smallest_cut_size = final_cut_size
+            while fm_passes < 500:
+                reset_main_list()
+                mutate_main_list(smallest_cut_size)
+                reset_main_list()
+                final_cut_size = multistart_ls(graph)
 
+                #print('')
+                #print(smallest_cut_size)
+                #print(final_cut_size)
+                #print("FM pass # :", fm_passes)
+
+                if final_cut_size == smallest_cut_size:
+                    region_of_attraction += 1
+                if final_cut_size < smallest_cut_size:
+                    final_main_list = deepcopy(main_list)
+                    smallest_cut_size = final_cut_size
+
+                else:
+                    main_list = deepcopy(final_main_list)
+
+            av_smallest_cut_size += smallest_cut_size
+
+        print(f"average smallest cut: {av_smallest_cut_size/5}")
+        print(f"average attraction: {region_of_attraction/5}")
+        print(f"mutation: {mutation_size}")
+
+        if av_smallest_cut_size < old_cut_size:
+            old_cut_size = av_smallest_cut_size
+            mutation_size += 10
         else:
-            main_list = deepcopy(final_main_list)
+            stop_ils = True
 
-    final_main_list = deepcopy(main_list)
-    new_graph(graph)
-    draw_graph(graph, "two-nodes-color2.pdf")
+    print("final cut size and mutation rate")
+    print(old_cut_size)
+    print(mutation_size)
+    #final_main_list = deepcopy(main_list)
+    #new_graph(graph)
+    #draw_graph(graph, "two-nodes-color2.pdf")
     """
     # ILS --------------------------------------------------------------
 
     # GLS --------------------------------------------------------------
-    """
-    global gls_list
-
-    gls_list = []
-    initial_list = setup_initial_list(graph)
-    random_partitions = create_random_partitions(initial_list, 50)
-    for partition in random_partitions:
-        main_list = partition
-        fm()
-        cut_size = multistart_ls(graph)
-        print(cut_size)
-        gls_list.append([deepcopy(main_list), cut_size])
-    gls_list.sort(key=lambda x: x[1])
-
-    while fm_passes < 10000:                # This value is not specified in the assignment ToDo: should be tested.
-        print('gls')                        # ToDo: It probably should be higher too, but this takes more time
-        random_nr_1 = random.randint(0, 49)
-        random_nr_2 = random.randint(0, 49)
-        while random_nr_1 == random_nr_2:
-            random_nr_2 = random.randint(0, 49)
-        parent_1 = deepcopy(gls_list[random_nr_1][0])
-        parent_2 = deepcopy(gls_list[random_nr_2][0])
-
-        setup_child(parent_1, parent_2)
-
-        cut_size = fm(graph)
-        print(cut_size)
-        print(fm_passes)
-        if cut_size <= gls_list[49][1]:
-            gls_list[49] = [deepcopy(main_list), cut_size]
-            gls_list.sort(key=lambda x: x[1])
     
+    global gls_list
+    minimal_cutsize_list = []
 
-    final_main_list = deepcopy(gls_list[0][0])
-    print('')
-    print(gls_list[0][1])
+    for i in range(0, 5):                       
+        start_time = time.time()
+        fm_passes = 0
 
+        gls_list = []
+        initial_list = setup_initial_list(graph)
+        random_partitions = create_random_partitions(initial_list, 50)
+        for partition in random_partitions:
+            main_list = partition
+            fm()
+            cut_size = multistart_ls(graph)
+            gls_list.append([deepcopy(main_list), cut_size])
+        gls_list.sort(key=lambda x: x[1])
+    
+        while fm_passes < 10000:
+            random_nr_1 = random.randint(0, 49)
+            random_nr_2 = random.randint(0, 49)
+            while random_nr_1 == random_nr_2:
+                random_nr_2 = random.randint(0, 49)
+            parent_1 = deepcopy(gls_list[random_nr_1][0])
+            parent_2 = deepcopy(gls_list[random_nr_2][0])
+    
+            setup_child(parent_1, parent_2)
+    
+            cut_size = multistart_ls(graph)
+            if cut_size <= gls_list[49][1]:
+                gls_list[49] = [deepcopy(main_list), cut_size]
+                gls_list.sort(key=lambda x: x[1])
+    
+        '''for i in gls_list:
+            print(i[1])'''
+
+        #final_main_list = deepcopy(gls_list[0][0])
+        #print('')
+        #print(gls_list[0][1])
+    
+        minimal_cutsize_list.append((gls_list[0][1], time.time() - start_time, deepcopy(gls_list[0][0])))
+        print(i)
+
+    minimal_cutsize_list.sort(key=lambda x: x[0])
+    print("")
+    print(f'cut 1: {minimal_cutsize_list[0][0]}, time 1:{minimal_cutsize_list[0][1]}')
+    print(f'cut 2: {minimal_cutsize_list[1][0]}, time 2:{minimal_cutsize_list[1][1]}')
+    print(f'cut 3: {minimal_cutsize_list[2][0]}, time 3:{minimal_cutsize_list[2][1]}')
+    print(f'cut 4: {minimal_cutsize_list[3][0]}, time 4:{minimal_cutsize_list[3][1]}')
+    print(f'cut 5: {minimal_cutsize_list[4][0]}, time 5:{minimal_cutsize_list[4][1]}')
+
+    final_main_list = deepcopy(minimal_cutsize_list[0][2])
     new_graph(graph)
     draw_graph(graph, "two-nodes-color2.pdf")
-    """
+    
     # GLS --------------------------------------------------------------
 
     return Graph()
@@ -319,6 +372,7 @@ def mutate_main_list(cut_size):
     global main_list, main_list_best
     global list_0, list_1
     global pointer_0, pointer_1
+    global mutation_size
     mutation_bool = True
 
     list_zeros = []
@@ -330,7 +384,7 @@ def mutate_main_list(cut_size):
         if element.partitioning == 1:
             list_ones.append(element.vertex_number)
 
-    for i in range(0, 96):     # Needs to always be divisible by 2! Not specified in assignment how high it should be, ToDo: find the sweetspot?
+    for i in range(0, mutation_size):     # Needs to always be divisible by 2! Not specified in assignment how high it should be, ToDo: find the sweetspot?
         if i % 2 == 0:                                      # Flipping 0,1,0,1..
             random.shuffle(list_zeros)
             mutation_spot = list_zeros[0]
