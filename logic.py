@@ -68,7 +68,7 @@ def init(graph_str):
 
     final_main_list = deepcopy(minimal_cutsize_list[0][2])
     new_graph(graph)
-    draw_graph(graph, "two-nodes-color2.pdf")
+    draw_graph(graph, "MLS-experiment-name.pdf")
     # MLS --------------------------------------------------------------
     """
     # ILS --------------------------------------------------------------
