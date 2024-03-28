@@ -92,7 +92,6 @@ def init(graph_str):
         smallest_cut_size = multistart_ls(graph)
         final_main_list = deepcopy(main_list)
         while fm_passes < 10000:
-        #while (time.time() - start_time) < mls_duration:
             reset_main_list()
             mutate_main_list(smallest_cut_size)
             reset_main_list()
