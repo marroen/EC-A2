@@ -92,6 +92,7 @@ def init(graph_str):
         smallest_cut_size = multistart_ls(graph)
         final_main_list = deepcopy(main_list)
         while fm_passes < 10000:
+        #while (time.time() - start_time) < mls_duration:
             reset_main_list()
             mutate_main_list(smallest_cut_size)
             reset_main_list()
@@ -125,11 +126,7 @@ def init(graph_str):
 
     final_main_list = deepcopy(minimal_cutsize_list[0][2])
     new_graph(graph)
-    draw_graph(graph, "ILS-mutation-100.pdf")
-
-    #final_main_list = deepcopy(main_list)
-    #new_graph(graph)
-    #draw_graph(graph, "two-nodes-color2.pdf")
+    draw_graph(graph, "ILS-experiment-name.pdf")
     
     # ILS --------------------------------------------------------------
     '''
@@ -150,13 +147,11 @@ def init(graph_str):
             main_list = partition
             fm()
             cut_size = multistart_ls(graph)
-            #print(cut_size)
             gls_list.append([deepcopy(main_list), cut_size])
         gls_list.sort(key=lambda x: x[1])
     
         while fm_passes < 10000:
         #while (time.time() - start_time) < mls_duration:
-            #print('gls')                   
             random_nr_1 = random.randint(0, population_size-1)
             random_nr_2 = random.randint(0, population_size-1)
             while random_nr_1 == random_nr_2:
@@ -167,15 +162,9 @@ def init(graph_str):
             setup_child(parent_1, parent_2)
     
             cut_size = multistart_ls(graph)
-            #print(cut_size)
-            #print(fm_passes)
             if cut_size <= gls_list[population_size-1][1]:
                 gls_list[population_size-1] = [deepcopy(main_list), cut_size]
                 gls_list.sort(key=lambda x: x[1])
-
-        #final_main_list = deepcopy(gls_list[0][0])
-        #print('')
-        #print(gls_list[0][1])
     
         minimal_cutsize_list.append((gls_list[0][1], time.time() - start_time, deepcopy(gls_list[0][0])))
         print(i)
@@ -190,7 +179,7 @@ def init(graph_str):
 
     final_main_list = deepcopy(minimal_cutsize_list[0][2])
     new_graph(graph)
-    draw_graph(graph, "GLS-pop-150.pdf")
+    draw_graph(graph, "GLS-experiment-name.pdf")
 
     # GLS --------------------------------------------------------------
 
